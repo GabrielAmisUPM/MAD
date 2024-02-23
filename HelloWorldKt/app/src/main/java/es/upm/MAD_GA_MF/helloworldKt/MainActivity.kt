@@ -1,45 +1,44 @@
 package es.upm.MAD_GA_MF.helloworldKt
 
-import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
-import android.os.Bundle
-import android.util.Log
-import android.widget.Button
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
+import android.os.Bundle
 import android.widget.TextView
 import androidx.core.app.ActivityCompat
-
-
+import android.content.Intent
+import androidx.appcompat.app.AppCompatActivity
+import android.util.Log
+import android.widget.Button
 
 class MainActivity : AppCompatActivity(), LocationListener {
     private val TAG = "btaMainActivity"
     private lateinit var locationManager: LocationManager
-    private lateinit var latestLocation: Location
+    var latestLocation: Location? = null
     private val locationPermissionCode = 2
-
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        Log.d(TAG, "onCreate: The activity is being created.");
-        println("Hello world!")
+        Log.d(TAG, "onCreate: The activity is being created.")
+        println("Hello world to test System.out standar aoutput!")
 
-        val buttonNext: Button = findViewById(R.id.mainButton)
-        buttonNext.setOnClickListener {
-            val intent = Intent(this, SecondActivity::class.java)
-            val bundle = Bundle()
-            bundle.putParcelable("location", latestLocation)
-            intent.putExtra("locationBundle", bundle)
-            startActivity(intent)
+        val buttonOsm: Button = findViewById(R.id.osmButton)
+        buttonOsm.setOnClickListener {
+            if (latestLocation != null) {
+                val intent = Intent(this, OpenStreetMapActivity::class.java)
+                val bundle = Bundle()
+                bundle.putParcelable("location", latestLocation)
+                intent.putExtra("locationBundle", bundle)
+                startActivity(intent)
+            }else{
+                Log.e(TAG, "Location not set yet.")
+            }
         }
-
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
         // Check for location permissions
