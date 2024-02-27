@@ -1,18 +1,22 @@
 package es.upm.MAD_GA_MF.helloworldKt
 
+import java.io.File
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
 import android.widget.TextView
-import androidx.core.app.ActivityCompat
-import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
-import android.util.Log
+import android.widget.Toast
 import android.widget.Button
+import android.widget.EditText
+import androidx.core.app.ActivityCompat
+import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AlertDialog
 
 class MainActivity : AppCompatActivity(), LocationListener {
     private val TAG = "btaMainActivity"
@@ -23,6 +27,16 @@ class MainActivity : AppCompatActivity(), LocationListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        // Check if the user identifier is already saved
+        val userIdentifier = getUserIdentifier()
+        if (userIdentifier == null) {
+        // If not, ask for it
+            askForUserIdentifier()
+        } else {
+        // If yes, use it or show it
+            Toast.makeText(this, "User ID: $userIdentifier", Toast.LENGTH_LONG).show()
+        }
 
         Log.d(TAG, "onCreate: The activity is being created.")
         println("Hello world to test System.out standar aoutput!")
@@ -73,10 +87,48 @@ class MainActivity : AppCompatActivity(), LocationListener {
         }
     }
 
+    private fun saveCoordinatesToFile(latitude: Double, longitude: Double) {
+        val fileName = "gps_coordinates.csv"
+        val file = File(filesDir, fileName)
+        val timestamp = System.currentTimeMillis()
+        file.appendText("$timestamp;$latitude;$longitude\n")
+    }
     override fun onLocationChanged(location: Location) {
         latestLocation = location
         val textView: TextView = findViewById(R.id.mainTextView)
+        Toast.makeText(this, "Coordinates update! [${location.latitude}][${location.longitude}]", Toast.LENGTH_LONG).show()
         textView.text = "Latitude: ${location.latitude}, Longitude: ${location.longitude}"
+        saveCoordinatesToFile(location.latitude, location.longitude)
+    }
+
+    private fun askForUserIdentifier() {
+        val input = EditText(this)
+        AlertDialog.Builder(this)
+            .setTitle("Enter User Identifier")
+            .setIcon(R.mipmap.ic_launcher)
+            .setView(input)
+            .setPositiveButton("Save") { dialog, which ->
+                val userInput = input.text.toString()
+                if (userInput.isNotBlank()) {
+                    saveUserIdentifier(userInput)
+                    Toast.makeText(this, "User ID saved: $userInput", Toast.LENGTH_LONG).show()
+                } else {
+                    Toast.makeText(this, "User ID cannot be blank", Toast.LENGTH_LONG).show()
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+    private fun saveUserIdentifier(userIdentifier: String) {
+        val sharedPreferences = this.getSharedPreferences("AppPreferences", Context.MODE_PRIVATE)
+        sharedPreferences.edit().apply {
+            putString("userIdentifier", userIdentifier)
+            apply()
+        }
+    }
+    private fun getUserIdentifier(): String? {
+        val sharedPreferences = this.getSharedPreferences("AppPreferences", Context.MODE_PRIVATE)
+        return sharedPreferences.getString("userIdentifier", null)
     }
 
     override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
