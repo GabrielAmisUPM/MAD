@@ -53,6 +53,13 @@ class MainActivity : AppCompatActivity(), LocationListener {
                 Log.e(TAG, "Location not set yet.")
             }
         }
+
+        val buttonNext: Button = findViewById(R.id.mainButton)
+        buttonNext.setOnClickListener {
+            val intent = Intent(this, SecondActivity::class.java)
+            startActivity(intent)
+        }
+
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
         // Check for location permissions

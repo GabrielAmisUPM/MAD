@@ -1,8 +1,10 @@
 package es.upm.MAD_GA_MF.helloworldKt
 
+import android.content.Intent
 import android.location.Location
 import android.os.Bundle
 import android.util.Log
+import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import org.osmdroid.config.Configuration
@@ -46,6 +48,12 @@ class OpenStreetMapActivity : AppCompatActivity() {
 
         val bundle = intent.getBundleExtra("locationBundle")
         val location: Location? = bundle?.getParcelable("location")
+
+        val buttonQuit: Button = findViewById(R.id.QuitButton)
+        buttonQuit.setOnClickListener {
+            val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
+        }
 
         if (location != null) {
             Log.i(TAG, "onCreate: Location["+location.altitude+"]["+location.latitude+"]["+location.longitude+"][")
