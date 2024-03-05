@@ -13,7 +13,6 @@ import android.widget.Button
 import android.widget.ListView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import com.google.android.material.color.utilities.MaterialDynamicColors.error
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
@@ -73,8 +72,8 @@ class SecondActivity : AppCompatActivity() {
                     putExtra("latitude", item[1])
                     putExtra("longitude", item[2])
                 }
+
                 context.startActivity(intent)
-                println("DEBUG")
             }
             return view
         }
