@@ -30,27 +30,19 @@ class SecondActivity : AppCompatActivity() {
 
         // Display the file contents
         val tvFileContents: TextView = findViewById(R.id.tvFileContents)
-        tvFileContents.text = readFileContents()
-        
+        tvFileContents.text = readFileContents().toString()
+
         Log.d(TAG, "onCreate: The activity is being created.");
 
         val bundle = intent.getBundleExtra("locationBundle")
         val location: Location? = bundle?.getParcelable("location")
 
         if (location != null) {
-            Log.i(TAG, "onCreate: Location["+location.altitude+"]["+location.latitude+"]["+location.longitude+"][")
+            Log.i(
+                TAG,
+                "onCreate: Location[" + location.altitude + "][" + location.latitude + "][" + location.longitude + "]["
+            )
         };
-
-        val buttonNext: Button = findViewById(R.id.SecondButton)
-        buttonNext.setOnClickListener {
-            val intent = Intent(this, ThirdActivity::class.java)
-            startActivity(intent)
-        }
-
-        val buttonPrevious: Button = findViewById(R.id.secondPreviousButton)
-        buttonPrevious.setOnClickListener {
-            val intent = Intent(this, MainActivity::class.java)
-            startActivity(intent)
 
         // ButtomNavigationMenu
         val navView: BottomNavigationView = findViewById(R.id.nav_view)
@@ -61,6 +53,7 @@ class SecondActivity : AppCompatActivity() {
                     startActivity(intent)
                     true
                 }
+
                 R.id.navigation_map -> {
                     if (latestLocation != null) {
                         val intent = Intent(this, OpenStreetMapActivity::class.java)
@@ -68,11 +61,12 @@ class SecondActivity : AppCompatActivity() {
                         bundle.putParcelable("location", latestLocation)
                         intent.putExtra("locationBundle", bundle)
                         startActivity(intent)
-                    }else{
+                    } else {
                         Log.e(TAG, "Location not set yet.")
                     }
                     true
                 }
+
                 R.id.navigation_list -> {
                     val intent = Intent(this, SecondActivity::class.java)
                     startActivity(intent)
@@ -88,9 +82,7 @@ class SecondActivity : AppCompatActivity() {
 
         val adapter = CoordinatesAdapter(this, readFileContents())
         listView.adapter = adapter
-
     }
-
     private class CoordinatesAdapter(context: Context, private val coordinatesList: List<List<String>>) :
         ArrayAdapter<List<String>>(context, R.layout.listview_item, coordinatesList) {
         private val inflater: LayoutInflater = LayoutInflater.from(context)
@@ -108,27 +100,28 @@ class SecondActivity : AppCompatActivity() {
                     putExtra("latitude", item[1])
                     putExtra("longitude", item[2])
                 }
-
                 context.startActivity(intent)
             }
             return view
         }
+
         private fun formatTimestamp(timestamp: Long): String {
             val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
             return formatter.format(Date(timestamp))
         }
+
         private fun formatCoordinate(value: Double): String {
             return String.format("%.6f", value)
         }
     }
-    private fun readFileContents(): List<List<String>> {
-        val fileName = "gps_coordinates.csv"
-        return try {
-            openFileInput(fileName).bufferedReader().useLines { lines ->
-                lines.map { it.split(";").map(String::trim) }.toList()
+        private fun readFileContents(): List<List<String>> {
+            val fileName = "gps_coordinates.csv"
+            return try {
+                openFileInput(fileName).bufferedReader().useLines { lines ->
+                    lines.map { it.split(";").map(String::trim) }.toList()
+                }
+            } catch (e: IOException) {
+                listOf(listOf("Error reading file: ${e.message}"))
             }
-        } catch (e: IOException) {
-            listOf(listOf("Error reading file: ${e.message}"))
         }
-    }
 }

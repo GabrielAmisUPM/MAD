@@ -1,6 +1,8 @@
 package es.upm.MAD_GA_MF.helloworldKt
 
+import android.content.ContentValues
 import android.content.Intent
+import android.location.Location
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -22,8 +24,8 @@ class ThirdActivity : AppCompatActivity() {
 
         if (location != null) {
             Log.i(ContentValues.TAG, "onCreate: Location["+location.altitude+"]["+location.latitude+"]["+location.longitude+"][")
-        };
-/*        // Add item to Firebase realtime database
+        };/*
+        // Add item to Firebase realtime database
         val addReportButton: Button = findViewById(R.id.addReportButton)
         val editTextReport: EditText = findViewById(R.id.editTextReport)
         val user = FirebaseAuth.getInstance().currentUser
