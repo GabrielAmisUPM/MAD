@@ -4,9 +4,11 @@ import android.content.Intent
 import android.location.Location
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
@@ -18,6 +20,8 @@ import org.osmdroid.views.overlay.Polyline
 class OpenStreetMapActivity : AppCompatActivity() {
     private val TAG = "btaOpenStreetMapActivity"
     private lateinit var map: MapView
+
+
 
     //Route de Tapas
     val gymkhanaCoords = listOf(
@@ -43,16 +47,50 @@ class OpenStreetMapActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_open_street_map)
+        var latestLocation: Location? = null
 
         Log.d(TAG, "onCreate: The activity is being created.");
+
 
         val bundle = intent.getBundleExtra("locationBundle")
         val location: Location? = bundle?.getParcelable("location")
 
         val buttonQuit: Button = findViewById(R.id.QuitButton)
+
         buttonQuit.setOnClickListener {
             val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
+        }
+
+        // ButtomNavigationMenu
+        val navView: BottomNavigationView = findViewById(R.id.nav_view)
+        navView.setVisibility(View.GONE)
+        navView.setOnNavigationItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.navigation_home -> {
+                    val intent = Intent(this, MainActivity::class.java)
+                    startActivity(intent)
+                    true
+                }
+                R.id.navigation_map -> {
+                    if (latestLocation != null) {
+                        val intent = Intent(this, OpenStreetMapActivity::class.java)
+                        val bundle = Bundle()
+                        bundle.putParcelable("location", latestLocation)
+                        intent.putExtra("locationBundle", bundle)
+                        startActivity(intent)
+                    }else{
+                        Log.e(TAG, "Location not set yet.")
+                    }
+                    true
+                }
+                R.id.navigation_list -> {
+                    val intent = Intent(this, SecondActivity::class.java)
+                    startActivity(intent)
+                    true
+                }
+                else -> false
+            }
         }
 
         if (location != null) {
