@@ -1,6 +1,5 @@
 package es.upm.MAD_GA_MF.helloworldKt
 
-import java.io.File
 import android.Manifest
 import android.app.Activity
 import android.content.Context
@@ -20,14 +19,11 @@ import android.view.Menu
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AlertDialog
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.auth
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.IdpResponse
 import androidx.appcompat.widget.Toolbar
-import com.android.car.ui.toolbar.MenuItem
-
+import java.io.File
 
 class MainActivity : AppCompatActivity(), LocationListener {
     private val TAG = "btaMainActivity"
@@ -46,30 +42,30 @@ class MainActivity : AppCompatActivity(), LocationListener {
         // Check if user is signed in (non-null) and update UI accordingly.
         val currentUser = auth.currentUser
         if (currentUser != null) {
-            recreate()
+            updateUIWithUsername()
+        } else {
+            launchSignInFlow()
         }
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         // Initialize Firebase Auth
-        auth = Firebase.auth
-
-
+        auth = FirebaseAuth.getInstance()
 
         // Check if the user identifier is already saved
         val userIdentifier = getUserIdentifier()
         if (userIdentifier == null) {
-        // If not, ask for it
+            // If not, ask for it
             askForUserIdentifier()
         } else {
-        // If yes, use it or show it
+            // If yes, use it or show it
             Toast.makeText(this, "User ID: $userIdentifier", Toast.LENGTH_LONG).show()
         }
 
         Log.d(TAG, "onCreate: The activity is being created.")
-        println("Hello world to test System.out standar aoutput!")
-
+        println("Hello world to test System.out standard output!")
 
         locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
 
@@ -93,7 +89,7 @@ class MainActivity : AppCompatActivity(), LocationListener {
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 5f, this)
         }
 
-        // ButtomNavigationMenu
+        // BottomNavigationMenu
         val navView: BottomNavigationView = findViewById(R.id.nav_view)
         navView.setOnNavigationItemSelectedListener { item ->
             when (item.itemId) {
@@ -109,7 +105,7 @@ class MainActivity : AppCompatActivity(), LocationListener {
                         bundle.putParcelable("location", latestLocation)
                         intent.putExtra("locationBundle", bundle)
                         startActivity(intent)
-                    }else{
+                    } else {
                         Log.e(TAG, "Location not set yet.")
                     }
                     true
@@ -126,14 +122,13 @@ class MainActivity : AppCompatActivity(), LocationListener {
         // Configure Toolbar
         val toolbar: Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
-
-        launchSignInFlow()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.toolbar_menu, menu)
         return true
     }
+
     override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_settings -> {
@@ -153,18 +148,20 @@ class MainActivity : AppCompatActivity(), LocationListener {
         if (requestCode == RC_SIGN_IN) {
             val response = IdpResponse.fromResultIntent(data)
             if (resultCode == Activity.RESULT_OK) {
-            // user login succeeded
+                // user login succeeded
                 val user = FirebaseAuth.getInstance().currentUser
-                Toast.makeText(this, R.string.signed_in, Toast.LENGTH_SHORT).show();
-                Log.i(TAG, "onActivityResult " + getString(R.string.signed_in));
+                Toast.makeText(this, R.string.signed_in, Toast.LENGTH_SHORT).show()
+                Log.i(TAG, "onActivityResult " + getString(R.string.signed_in))
+                updateUIWithUsername()
             } else {
-            // user login failed
+                // user login failed
                 Log.e(TAG, "Error starting auth session: ${response?.error?.errorCode}")
-                Toast.makeText(this, R.string.signed_cancelled, Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.signed_cancelled, Toast.LENGTH_SHORT).show()
                 finish()
             }
         }
     }
+
     private fun launchSignInFlow() {
         val providers = arrayListOf(
             AuthUI.IdpConfig.EmailBuilder().build(),
@@ -178,18 +175,20 @@ class MainActivity : AppCompatActivity(), LocationListener {
             RC_SIGN_IN
         )
     }
+
     private fun logout() {
         AuthUI.getInstance()
             .signOut(this)
             .addOnCompleteListener {
-// Restart activity after finishing
+                // Restart activity after finishing
                 val intent = Intent(this, MainActivity::class.java)
-// Clean back stack so that user cannot retake activity after logout
+                // Clean back stack so that user cannot retake activity after logout
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 startActivity(intent)
                 finish()
             }
     }
+
     private fun updateUIWithUsername() {
         val user = FirebaseAuth.getInstance().currentUser
         val userNameTextView: TextView = findViewById(R.id.userNameTextView)
@@ -198,6 +197,7 @@ class MainActivity : AppCompatActivity(), LocationListener {
             userNameTextView.text = "\uD83E\uDD35\u200D♂\uFE0F " + name
         }
     }
+
     override fun onResume() {
         super.onResume()
         updateUIWithUsername()
@@ -214,13 +214,13 @@ class MainActivity : AppCompatActivity(), LocationListener {
         }
     }
 
-
     private fun saveCoordinatesToFile(latitude: Double, longitude: Double) {
         val fileName = "gps_coordinates.csv"
         val file = File(filesDir, fileName)
         val timestamp = System.currentTimeMillis()
         file.appendText("$timestamp;$latitude;$longitude\n")
     }
+
     override fun onLocationChanged(location: Location) {
         latestLocation = location
         val textView: TextView = findViewById(R.id.mainTextView)
@@ -247,20 +247,28 @@ class MainActivity : AppCompatActivity(), LocationListener {
             .setNegativeButton("Cancel", null)
             .show()
     }
-    private fun saveUserIdentifier(userIdentifier: String) {
-        val sharedPreferences = this.getSharedPreferences("AppPreferences", MODE_PRIVATE)
-        sharedPreferences.edit().apply {
-            putString("userIdentifier", userIdentifier)
-            apply()
-        }
+
+    private fun saveUserIdentifier(identifier: String) {
+        val sharedPreferences = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        editor.putString("userIdentifier", identifier)
+        editor.apply()
     }
+
     private fun getUserIdentifier(): String? {
-        val sharedPreferences = this.getSharedPreferences("AppPreferences", MODE_PRIVATE)
+        val sharedPreferences = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
         return sharedPreferences.getString("userIdentifier", null)
     }
 
+    override fun onProviderDisabled(provider: String) {
+        Toast.makeText(this, "Provider disabled: $provider", Toast.LENGTH_SHORT).show()
+    }
 
-    override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
-    override fun onProviderEnabled(provider: String) {}
-    override fun onProviderDisabled(provider: String) {}
+    override fun onProviderEnabled(provider: String) {
+        Toast.makeText(this, "Provider enabled: $provider", Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
+        // Deprecated, no-op
+    }
 }

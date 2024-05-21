@@ -9,15 +9,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
-import android.widget.Button
 import android.widget.ListView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
-
-import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class SecondActivity : AppCompatActivity() {
     private val TAG = "btaSecondActivity"
@@ -27,24 +25,16 @@ class SecondActivity : AppCompatActivity() {
         setContentView(R.layout.activity_second)
         var latestLocation: Location? = null
 
-
-        // Display the file contents
-        val tvFileContents: TextView = findViewById(R.id.tvFileContents)
-        tvFileContents.text = readFileContents().toString()
-
-        Log.d(TAG, "onCreate: The activity is being created.");
+        Log.d(TAG, "onCreate: The activity is being created.")
 
         val bundle = intent.getBundleExtra("locationBundle")
         val location: Location? = bundle?.getParcelable("location")
 
         if (location != null) {
-            Log.i(
-                TAG,
-                "onCreate: Location[" + location.altitude + "][" + location.latitude + "][" + location.longitude + "]["
-            )
-        };
+            Log.i(TAG, "onCreate: Location[${location.altitude}][${location.latitude}][${location.longitude}]")
+        }
 
-        // ButtomNavigationMenu
+        // BottomNavigationMenu
         val navView: BottomNavigationView = findViewById(R.id.nav_view)
         navView.setOnNavigationItemSelectedListener { item ->
             when (item.itemId) {
@@ -53,7 +43,6 @@ class SecondActivity : AppCompatActivity() {
                     startActivity(intent)
                     true
                 }
-
                 R.id.navigation_map -> {
                     if (latestLocation != null) {
                         val intent = Intent(this, OpenStreetMapActivity::class.java)
@@ -66,7 +55,6 @@ class SecondActivity : AppCompatActivity() {
                     }
                     true
                 }
-
                 R.id.navigation_list -> {
                     val intent = Intent(this, SecondActivity::class.java)
                     startActivity(intent)
@@ -83,6 +71,7 @@ class SecondActivity : AppCompatActivity() {
         val adapter = CoordinatesAdapter(this, readFileContents())
         listView.adapter = adapter
     }
+
     private class CoordinatesAdapter(context: Context, private val coordinatesList: List<List<String>>) :
         ArrayAdapter<List<String>>(context, R.layout.listview_item, coordinatesList) {
         private val inflater: LayoutInflater = LayoutInflater.from(context)
@@ -114,14 +103,15 @@ class SecondActivity : AppCompatActivity() {
             return String.format("%.6f", value)
         }
     }
-        private fun readFileContents(): List<List<String>> {
-            val fileName = "gps_coordinates.csv"
-            return try {
-                openFileInput(fileName).bufferedReader().useLines { lines ->
-                    lines.map { it.split(";").map(String::trim) }.toList()
-                }
-            } catch (e: IOException) {
-                listOf(listOf("Error reading file: ${e.message}"))
+
+    private fun readFileContents(): List<List<String>> {
+        val fileName = "gps_coordinates.csv"
+        return try {
+            openFileInput(fileName).bufferedReader().useLines { lines ->
+                lines.map { it.split(";").map(String::trim) }.toList()
             }
+        } catch (e: IOException) {
+            listOf(listOf("Error reading file: ${e.message}"))
         }
+    }
 }

@@ -12,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId = "es.upm.MAD_GA_MF.helloworldKt"
-        minSdk = 24
+        minSdk = 28
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -60,7 +60,7 @@ dependencies {
     // Import the Firebase BoM
     implementation(platform("com.google.firebase:firebase-bom:32.8.0"))
     implementation("com.google.firebase:firebase-auth")
-    implementation("com.firebaseui:firebase-ui-auth:8.0.1")
+    implementation("com.firebaseui:firebase-ui-auth:8.0.2")
 
     implementation ("com.google.firebase:firebase-database-ktx")
 
