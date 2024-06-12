@@ -3,7 +3,7 @@
 ## Workspace 
 Github:  
 - Repository: https://github.com/GabrielAmisUPM/MAD
-- - Releases: https://github.com/GabrielAmisUPM/MAD/releases  
+- Releases: https://github.com/GabrielAmisUPM/MAD/releases  
 
 Workspace: https://upm365.sharepoint.com/sites/mobilappdevelopment/SitePages/Tracking.aspx
   
