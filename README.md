@@ -61,6 +61,22 @@ Include screenshots of the app in action. You can upload the images to GitHub an
 ## Demo Video
 [Demo Video](https://upm365-my.sharepoint.com/personal/gabriel_amis_alumnos_upm_es/_layouts/15/stream.aspx?id=%2Fpersonal%2Fgabriel%5Famis%5Falumnos%5Fupm%5Fes%2FDocuments%2FMAD%5FKOTLIN%2Ewebm&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJTdHJlYW1XZWJBcHAiLCJyZWZlcnJhbFZpZXciOiJTaGFyZURpYWxvZy1MaW5rIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXcifX0&ga=1&referrer=StreamWebApp%2EWeb&referrerScenario=AddressBarCopied%2Eview%2Ec35fe8b7%2Dfb4f%2D493e%2D8bf3%2Dfcb669e32e3a)
 
+## Features
+List the **functional** features of the app. For example:
+- Real Time weather of your location
+- Save custom Location to rapidly access the weather
+- Authentification
+
+List the **technical** features of the app. You might include specific references to source code
+in your repo. For example:
+- Persistence in csv/text file
+- Persistence in shared preferences
+- Firebase authentication
+- Maps: Openstreetmaps
+- Resful APIs used (Open Weather
+- Images: *e.g. glide*
+- Sensors: *e.g. GPS coordinates*
+
 ## Participants
 List of MAD developers:
 - Gabriel Amis (gabriel.amis@alumunos.upm.es)
