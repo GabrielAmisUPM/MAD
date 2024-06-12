@@ -4,112 +4,103 @@ import android.content.Intent
 import android.location.Location
 import android.os.Bundle
 import android.util.Log
+import android.view.MotionEvent
 import android.view.View
 import android.widget.Button
+import android.widget.EditText
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
-import org.osmdroid.views.overlay.Polyline
-
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.io.InputStreamReader
+import java.io.BufferedReader
 
 class OpenStreetMapActivity : AppCompatActivity() {
     private val TAG = "btaOpenStreetMapActivity"
     private lateinit var map: MapView
-
-
-
-    //Route de Tapas
-    val gymkhanaCoords = listOf(
-        GeoPoint(40.4097475666479, -3.696467155411834), // C. de Sta. Isabel
-        GeoPoint(40.41115638742475, -3.699585418475477), // Taberna El Sur
-        GeoPoint(40.41177200055652, -3.6983926236934126), // Antón Martín Market
-        GeoPoint(40.41388483661047, -3.7000894999219964), // Casa Alberto
-        GeoPoint(40.415142380712446, -3.707814247634712), // La Taberna de la Daniela
-        GeoPoint(40.41464183251029, -3.689444629001603), // El Brillante
-        GeoPoint(40.42598533032658, -3.6655878609180457), // El Museo del Jamón
-    )
-    val gymkhanaNames = listOf(
-        "Antón Martín Market",
-        "Taberna El Sur",
-        "C. de Sta. Isabel",
-        "Casa Alberto",
-        "La Taberna de la Daniela",
-        "El Brillante",
-        "El Museo del Jamón"
-    )
-
+    private var isMarkerMode = false
+    private lateinit var markerPopup: View
+    private lateinit var markerName: EditText
+    private lateinit var markerCoordinates: TextView
+    private lateinit var saveButton: Button
+    private lateinit var latestLocation: GeoPoint
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_open_street_map)
-        var latestLocation: Location? = null
 
-        Log.d(TAG, "onCreate: The activity is being created.");
-
+        Log.d(TAG, "onCreate: The activity is being created.")
 
         val bundle = intent.getBundleExtra("locationBundle")
         val location: Location? = bundle?.getParcelable("location")
 
         val buttonQuit: Button = findViewById(R.id.QuitButton)
+        val buttonMarker: Button = findViewById(R.id.MarkerButton)
+        markerPopup = findViewById(R.id.markerPopup)
+        val cancelButton: Button = findViewById(R.id.CancelButton)
+        saveButton = findViewById(R.id.SaveButton)
+        markerName = findViewById(R.id.markerName)
+        markerCoordinates = findViewById(R.id.markerCoordinates)
 
         buttonQuit.setOnClickListener {
             val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
         }
 
-        // ButtomNavigationMenu
-        val navView: BottomNavigationView = findViewById(R.id.nav_view)
-        navView.setVisibility(View.GONE)
-        navView.setOnNavigationItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.navigation_home -> {
-                    val intent = Intent(this, MainActivity::class.java)
-                    startActivity(intent)
-                    true
-                }
-                R.id.navigation_map -> {
-                    if (latestLocation != null) {
-                        val intent = Intent(this, OpenStreetMapActivity::class.java)
-                        val bundle = Bundle()
-                        bundle.putParcelable("location", latestLocation)
-                        intent.putExtra("locationBundle", bundle)
-                        startActivity(intent)
-                    }else{
-                        Log.e(TAG, "Location not set yet.")
-                    }
-                    true
-                }
-                R.id.navigation_list -> {
-                    val intent = Intent(this, SecondActivity::class.java)
-                    startActivity(intent)
-                    true
-                }
-                else -> false
-            }
+        buttonMarker.setOnClickListener {
+            isMarkerMode = !isMarkerMode
+            buttonMarker.text = if (isMarkerMode) "Marker is ON" else "Marker is OFF"
         }
+
+        cancelButton.setOnClickListener {
+            markerPopup.visibility = View.GONE
+            isMarkerMode = false
+            buttonMarker.text = "Marker is OFF"
+        }
+
+        saveButton.setOnClickListener {
+            val name = markerName.text.toString()
+            val point = latestLocation
+            addMarker(point, name)
+            saveCoordinatesToCSV(name, point)
+            markerPopup.visibility = View.GONE
+            isMarkerMode = false
+            buttonMarker.text = "Marker is OFF"
+        }
+
+        map = findViewById(R.id.map)
+        map.setTileSource(TileSourceFactory.MAPNIK)
+        map.controller.setZoom(18.0)
 
         if (location != null) {
             Log.i(TAG, "onCreate: Location["+location.altitude+"]["+location.latitude+"]["+location.longitude+"][")
 
             Configuration.getInstance().load(applicationContext, getSharedPreferences("osm", MODE_PRIVATE))
 
-            map = findViewById(R.id.map)
-            map.setTileSource(TileSourceFactory.MAPNIK)
-            map.controller.setZoom(18.0)
-
             val startPoint = GeoPoint(location.latitude, location.longitude)
             map.controller.setCenter(startPoint)
 
             addMarker(startPoint, "My current location")
-            //addMarkers(map, gymkhanaCoords, gymkhanaNames)
+        }
 
-            addMarkersAndRoute(map, gymkhanaCoords, gymkhanaNames)
-        };
+        map.setOnTouchListener { v, event ->
+            if (isMarkerMode && event.action == MotionEvent.ACTION_DOWN) {
+                val geoPoint = map.projection.fromPixels(event.x.toInt(), event.y.toInt()) as GeoPoint
+                latestLocation = geoPoint
+                markerCoordinates.text = "Lat: ${geoPoint.latitude}, Lon: ${geoPoint.longitude}"
+                markerPopup.visibility = View.VISIBLE
+            }
+            false
+        }
+
+        // Load markers from CSV file
+        loadMarkersFromCSV()
     }
 
     private fun addMarker(point: GeoPoint, title: String) {
@@ -121,52 +112,44 @@ class OpenStreetMapActivity : AppCompatActivity() {
         map.invalidate() // Reload map
     }
 
-    fun addMarkers(mapView: MapView, locationsCoords: List<GeoPoint>, locationsNames: List<String>) {
-
-        for (location in locationsCoords) {
-            val marker = Marker(mapView)
-            marker.position = location
-            marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-            marker.title = "Marker at ${locationsNames.get(locationsCoords.indexOf(location))} ${location.latitude}, ${location.longitude}"
-            marker.icon = ContextCompat.getDrawable(this, com.google.android.material.R.drawable.ic_m3_chip_checked_circle)
-            mapView.overlays.add(marker)
-        }
-        mapView.invalidate() // Refresh the map to display the new markers
+    private fun saveCoordinatesToCSV(name: String, point: GeoPoint) {
+        val fileName = "gps_coordinates.csv"
+        val file = File(getExternalFilesDir(null), fileName)
+        val fileOutputStream = FileOutputStream(file, true)
+        fileOutputStream.write("$name,${point.latitude},${point.longitude}\n".toByteArray())
+        fileOutputStream.close()
     }
 
-    fun addMarkersAndRoute(mapView: MapView, locationsCoords: List<GeoPoint>, locationsNames: List<String>) {
-        if (locationsCoords.size != locationsNames.size) {
-            Log.e("addMarkersAndRoute", "Locations and names lists must have the same number of items.")
-            return
+    private fun loadMarkersFromCSV() {
+        val fileName = "gps_coordinates.csv"
+        val file = File(getExternalFilesDir(null), fileName)
+        if (!file.exists()) return
+
+        val fileInputStream = FileInputStream(file)
+        val inputStreamReader = InputStreamReader(fileInputStream)
+        val bufferedReader = BufferedReader(inputStreamReader)
+        var line: String?
+
+        while (bufferedReader.readLine().also { line = it } != null) {
+            val parts = line!!.split(",")
+            if (parts.size == 3) {
+                val name = parts[0]
+                val latitude = parts[1].toDoubleOrNull()
+                val longitude = parts[2].toDoubleOrNull()
+                if (latitude != null && longitude != null) {
+                    val point = GeoPoint(latitude, longitude)
+                    addMarker(point, name)
+                }
+            }
         }
 
-        val route = Polyline()
-        route.setPoints(locationsCoords)
-        route.color = ContextCompat.getColor(this, R.color.teal_700)
-        mapView.overlays.add(route)
-
-        for (location in locationsCoords) {
-            val marker = Marker(mapView)
-            marker.position = location
-            marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-            val locationIndex = locationsCoords.indexOf(location)
-            marker.title = "Marker at ${locationsNames[locationIndex]} ${location.latitude}, ${location.longitude}"
-            marker.icon = ContextCompat.getDrawable(this, org.osmdroid.library.R.drawable.ic_menu_compass)
-            mapView.overlays.add(marker)
-        }
-
-        mapView.invalidate()
+        bufferedReader.close()
+        inputStreamReader.close()
+        fileInputStream.close()
     }
-
-
 
     override fun onResume() {
         super.onResume()
         map.onResume()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        map.onPause()
     }
 }

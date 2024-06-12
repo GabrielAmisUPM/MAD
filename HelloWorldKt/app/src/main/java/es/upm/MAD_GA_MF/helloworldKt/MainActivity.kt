@@ -2,6 +2,7 @@ package es.upm.MAD_GA_MF.helloworldKt
 
 import android.Manifest
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -9,65 +10,52 @@ import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
-import android.widget.TextView
-import android.widget.Toast
-import android.widget.Button
-import android.widget.EditText
-import androidx.core.app.ActivityCompat
 import android.util.Log
 import android.view.Menu
+import android.widget.EditText
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AlertDialog
-import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.firebase.auth.FirebaseAuth
+import androidx.appcompat.widget.Toolbar
+import androidx.core.app.ActivityCompat
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.IdpResponse
-import androidx.appcompat.widget.Toolbar
+import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.firebase.auth.FirebaseAuth
 import java.io.File
 
 class MainActivity : AppCompatActivity(), LocationListener {
+
     private val TAG = "btaMainActivity"
     private lateinit var locationManager: LocationManager
     private lateinit var auth: FirebaseAuth
+    private val locationPermissionCode = 2
+    private val RC_SIGN_IN = 123
 
     var latestLocation: Location? = null
-    private val locationPermissionCode = 2
-
-    companion object {
-        private const val RC_SIGN_IN = 123
-    }
 
     public override fun onStart() {
         super.onStart()
-        // Check if user is signed in (non-null) and update UI accordingly.
         val currentUser = auth.currentUser
-        if (currentUser != null) {
-            updateUIWithUsername()
+        if (currentUser == null) {
+            // Not signed in, launch the sign-in flow
+            startSignIn()
         } else {
-            launchSignInFlow()
+            Log.d(TAG, "User is already signed in: ${currentUser.email}")
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        // Initialize Firebase Auth
-        auth = FirebaseAuth.getInstance()
-
-        // Check if the user identifier is already saved
-        val userIdentifier = getUserIdentifier()
-        if (userIdentifier == null) {
-            // If not, ask for it
-            askForUserIdentifier()
-        } else {
-            // If yes, use it or show it
-            Toast.makeText(this, "User ID: $userIdentifier", Toast.LENGTH_LONG).show()
-        }
 
         Log.d(TAG, "onCreate: The activity is being created.")
         println("Hello world to test System.out standard output!")
 
         locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
+
+        // Initialize Firebase Auth
+        auth = FirebaseAuth.getInstance()
 
         // Check for location permissions
         if (ActivityCompat.checkSelfPermission(
@@ -84,8 +72,6 @@ class MainActivity : AppCompatActivity(), LocationListener {
                 locationPermissionCode
             )
         } else {
-            // The location is updated every 5000 milliseconds (or 5 seconds) and/or if the device moves more than 5 meters,
-            // whichever happens first
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 5f, this)
         }
 
@@ -143,29 +129,9 @@ class MainActivity : AppCompatActivity(), LocationListener {
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == RC_SIGN_IN) {
-            val response = IdpResponse.fromResultIntent(data)
-            if (resultCode == Activity.RESULT_OK) {
-                // user login succeeded
-                val user = FirebaseAuth.getInstance().currentUser
-                Toast.makeText(this, R.string.signed_in, Toast.LENGTH_SHORT).show()
-                Log.i(TAG, "onActivityResult " + getString(R.string.signed_in))
-                updateUIWithUsername()
-            } else {
-                // user login failed
-                Log.e(TAG, "Error starting auth session: ${response?.error?.errorCode}")
-                Toast.makeText(this, R.string.signed_cancelled, Toast.LENGTH_SHORT).show()
-                finish()
-            }
-        }
-    }
-
-    private fun launchSignInFlow() {
+    private fun startSignIn() {
         val providers = arrayListOf(
-            AuthUI.IdpConfig.EmailBuilder().build(),
-            AuthUI.IdpConfig.GoogleBuilder().build()
+            AuthUI.IdpConfig.EmailBuilder().build()
         )
         startActivityForResult(
             AuthUI.getInstance()
@@ -176,31 +142,37 @@ class MainActivity : AppCompatActivity(), LocationListener {
         )
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == RC_SIGN_IN) {
+            val response = IdpResponse.fromResultIntent(data)
+
+            if (resultCode == Activity.RESULT_OK) {
+                // Successfully signed in
+                val user = FirebaseAuth.getInstance().currentUser
+                Log.d(TAG, "Successfully signed in: ${user?.email}")
+                // Update UI with the signed-in user's information
+            } else {
+                // Sign in failed. If response is null the user canceled the sign-in flow using the back button.
+                // Otherwise check response.getError().getErrorCode() and handle the error.
+                if (response == null) {
+                    Log.d(TAG, "Sign-in canceled")
+                    Toast.makeText(this, "Sign-in canceled", Toast.LENGTH_SHORT).show()
+                    finish()
+                } else {
+                    Log.e(TAG, "Sign-in error: ${response.error?.errorCode}")
+                    Toast.makeText(this, "Sign-in error: ${response.error?.errorCode}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
     private fun logout() {
         AuthUI.getInstance()
             .signOut(this)
             .addOnCompleteListener {
-                // Restart activity after finishing
-                val intent = Intent(this, MainActivity::class.java)
-                // Clean back stack so that user cannot retake activity after logout
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                startActivity(intent)
-                finish()
+                startSignIn()
             }
-    }
-
-    private fun updateUIWithUsername() {
-        val user = FirebaseAuth.getInstance().currentUser
-        val userNameTextView: TextView = findViewById(R.id.userNameTextView)
-        user?.let {
-            val name = user.displayName ?: "No Name"
-            userNameTextView.text = "\uD83E\uDD35\u200D♂\uFE0F " + name
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        updateUIWithUsername()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -229,6 +201,11 @@ class MainActivity : AppCompatActivity(), LocationListener {
         saveCoordinatesToFile(location.latitude, location.longitude)
     }
 
+
+
+
+
+    //SHARED PREFERENCES
     private fun askForUserIdentifier() {
         val input = EditText(this)
         AlertDialog.Builder(this)
@@ -258,17 +235,5 @@ class MainActivity : AppCompatActivity(), LocationListener {
     private fun getUserIdentifier(): String? {
         val sharedPreferences = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
         return sharedPreferences.getString("userIdentifier", null)
-    }
-
-    override fun onProviderDisabled(provider: String) {
-        Toast.makeText(this, "Provider disabled: $provider", Toast.LENGTH_SHORT).show()
-    }
-
-    override fun onProviderEnabled(provider: String) {
-        Toast.makeText(this, "Provider enabled: $provider", Toast.LENGTH_SHORT).show()
-    }
-
-    override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
-        // Deprecated, no-op
     }
 }
