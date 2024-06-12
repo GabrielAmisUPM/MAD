@@ -28,36 +28,32 @@ Include screenshots of the app in action. You can upload the images to GitHub an
 <table>
   <tr>
     <td>
-      <img src="img/7rY_mUVx.png" width="80%" alt="Describe here image 1"/>
-      <p align="center">Describe here image 1</p>
-    </td>
-    <td>
-      <img src="img/ABmgpWzT.png" width="80%" alt="Describe here image 2"/>
-      <p align="center">Describe here image 2</p>
-    </td>
-  </tr>
-  <tr>
-    <td>
-      <img src="img/B2cbCm8w.png" width="80%" alt="Describe here image 3"/>
-      <p align="center">Describe here image 3</p>
+      <img src="img/ynGs47Ip.png" width="80%" alt="Describe here image 5"/>
+      <p align="center">Sign Up</p>
     </td>
     <td>
       <img src="img/UdhNdCVW.png" width="80%" alt="Describe here image 4"/>
-      <p align="center">Describe here image 4</p>
+      <p align="center">Permission</p>
+    </td>
+    <td>
+      <img src="img/ABmgpWzT.png" width="80%" alt="Describe here image 2"/>
+      <p align="center">Some Coordinates saved</p>
     </td>
   </tr>
   <tr>
     <td>
       <img src="img/i4LE0pjG.png" width="80%" alt="Describe here image 5"/>
-      <p align="center">Describe here image 5</p>
+      <p align="center">Map</p>
     </td>
+    <td>
+      <img src="img/B2cbCm8w.png" width="80%" alt="Describe here image 3"/>
+      <p align="center">Add a Marker and a saved point</p>
+    </td>
+  </tr>
+  <tr>
     <td>
       <img src="img/pgVH1FUP.png" width="80%" alt="Describe here image 5"/>
-      <p align="center">Describe here image 5</p>
-    </td>
-    <td>
-      <img src="img/ynGs47Ip.png" width="80%" alt="Describe here image 5"/>
-      <p align="center">Describe here image 5</p>
+      <p align="center">New Map after a marker was added</p>
     </td>
   </tr>
 </table>
@@ -65,9 +61,7 @@ Include screenshots of the app in action. You can upload the images to GitHub an
 
 
 ## Demo Video
-Video demonstrating how the app works (Max 1 video of 1 minute), upload it to a platform like YouTube or Vimeo (it might also work with Stream) and link it here:  
-<a href="https://vimeo.com/410664338?share=copy">
-<img src="img/thumb.png" alt="Noise meter app" width="100" />
+[Demo Video]<a href="https://upm365-my.sharepoint.com/personal/gabriel_amis_alumnos_upm_es/_layouts/15/stream.aspx?id=%2Fpersonal%2Fgabriel%5Famis%5Falumnos%5Fupm%5Fes%2FDocuments%2FMAD%5FKOTLIN%2Ewebm&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJTdHJlYW1XZWJBcHAiLCJyZWZlcnJhbFZpZXciOiJTaGFyZURpYWxvZy1MaW5rIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXcifX0&ga=1&referrer=StreamWebApp%2EWeb&referrerScenario=AddressBarCopied%2Eview%2Ec35fe8b7%2Dfb4f%2D493e%2D8bf3%2Dfcb669e32e3a">
 </a>
 
 ## Participants
